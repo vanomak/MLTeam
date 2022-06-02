@@ -18,6 +18,13 @@ class _TextRecognitionState extends State<TextRecognition> {
   File? imageFile;
   RecognizedText? recognizedText;
   bool loading = false;
+  List<TextElement> elements = [];
+  double? imageWidth;
+
+  calculateImageWidth() async {
+    var decodedImage = await decodeImageFromList(imageFile!.readAsBytesSync());
+    imageWidth = decodedImage.width.toDouble();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,9 +42,15 @@ class _TextRecognitionState extends State<TextRecognition> {
       ),
       body: Stack(
         children: [
-          if (imageFile != null)
+          if (imageWidth != null)
             Center(
-              child: Image.file(imageFile!),
+              child: CustomPaint(
+                foregroundPainter: EmailPainter(
+                  elements: elements,
+                  imageWidth: imageWidth!,
+                ),
+                child: Image.file(imageFile!),
+              ),
             ),
           if (loading) const Center(child: CircularProgressIndicator()),
         ],
@@ -52,6 +65,7 @@ class _TextRecognitionState extends State<TextRecognition> {
             setState(() {
               imagePath = image.path;
               imageFile = File(image.path);
+              calculateImageWidth();
             });
           }
         },
@@ -66,13 +80,45 @@ class _TextRecognitionState extends State<TextRecognition> {
       final inputImage = InputImage.fromFile(imageFile!);
       final result = await recognizer.processImage(inputImage);
       for (TextBlock block in result.blocks) {
-        print(block.text);
-        print(block.recognizedLanguages);
+        for (TextLine line in block.lines) {
+          for (TextElement element in line.elements) {
+            if (element.text.contains('@')) {
+              elements.add(element);
+            }
+          }
+        }
       }
+      print(elements);
       setState(() {
         recognizedText = result;
         loading = false;
       });
     }
+  }
+}
+
+class EmailPainter extends CustomPainter {
+  final List<TextElement> elements;
+  final double imageWidth;
+
+  EmailPainter({required this.elements, required this.imageWidth});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint();
+    final scale = size.width / imageWidth;
+    paint.strokeWidth = 2;
+    paint.color = Colors.red;
+    paint.style = PaintingStyle.stroke;
+    for (var element in elements) {
+      final rect = Rect.fromLTRB(element.boundingBox.left * scale, element.boundingBox.top * scale,
+          element.boundingBox.right * scale, element.boundingBox.bottom * scale);
+      canvas.drawRect(rect, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return true;
   }
 }

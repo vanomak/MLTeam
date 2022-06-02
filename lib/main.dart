@@ -16,9 +16,10 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      initialRoute: MyHomePage.route,
+      debugShowCheckedModeBanner: false,
+      initialRoute: TextRecognition.route,
       routes: {
-        MyHomePage.route: (_) => const MyHomePage(),
+        // MyHomePage.route: (_) => const MyHomePage(),
         TextRecognition.route: (_) => const TextRecognition(),
       },
     );
