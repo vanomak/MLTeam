@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class TextRecognition extends StatefulWidget {
   static const route = "/TextRecognition";
@@ -30,15 +31,15 @@ class _TextRecognitionState extends State<TextRecognition> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Распознавалка"),
-        actions: [
-          IconButton(
-            onPressed: () {
-              recognizeText();
-            },
-            icon: Icon(Icons.search),
-          ),
-        ],
+        title: const Text("Распознавалка"),
+        // actions: [
+        //   IconButton(
+        //     onPressed: () {
+        //       recognizeText();
+        //     },
+        //     icon: const Icon(Icons.search),
+        //   ),
+        // ],
       ),
       body: Stack(
         children: [
@@ -55,30 +56,34 @@ class _TextRecognitionState extends State<TextRecognition> {
           if (loading) const Center(child: CircularProgressIndicator()),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.photo_camera),
-        onPressed: () async {
-          final ImagePicker _picker = ImagePicker();
-          // Pick an image
-          final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-          if (image != null) {
-            setState(() {
-              imagePath = image.path;
-              imageFile = File(image.path);
-              calculateImageWidth();
-            });
-          }
-        },
-      ),
+      floatingActionButton: Builder(builder: (context) {
+        return FloatingActionButton(
+          child: const Icon(Icons.photo_camera),
+          onPressed: () async {
+            final ImagePicker picker = ImagePicker();
+            // Pick an image
+            final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+            if (image != null) {
+              setState(() {
+                imagePath = image.path;
+                imageFile = File(image.path);
+                calculateImageWidth();
+                recognizeText(context);
+              });
+            }
+          },
+        );
+      }),
     );
   }
 
-  void recognizeText() async {
+  void recognizeText(BuildContext context) async {
     if (imageFile != null) {
       setState(() => loading = true);
       final recognizer = TextRecognizer();
       final inputImage = InputImage.fromFile(imageFile!);
       final result = await recognizer.processImage(inputImage);
+      elements.clear();
       for (TextBlock block in result.blocks) {
         for (TextLine line in block.lines) {
           for (TextElement element in line.elements) {
@@ -93,6 +98,29 @@ class _TextRecognitionState extends State<TextRecognition> {
         recognizedText = result;
         loading = false;
       });
+      showBottomSheet(
+          context: context,
+          builder: (_) {
+            return Container(
+              height: 300,
+              child: SingleChildScrollView(
+                child: Column(
+                  children: elements
+                      .map<Widget>((element) => ListTile(
+                            onTap: () {
+                              launchUrl(Uri.parse("mailto:${element.text}"));
+                            },
+                            leading: Icon(
+                              Icons.email,
+                              color: Theme.of(context).primaryColor,
+                            ),
+                            title: Text(element.text),
+                          ))
+                      .toList(),
+                ),
+              ),
+            );
+          });
     }
   }
 }
