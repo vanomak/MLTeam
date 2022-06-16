@@ -89,11 +89,11 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.example.ml" "\0"
+            VALUE "CompanyName", "com.vanomak.ml" "\0"
             VALUE "FileDescription", "ml_team" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "ml_team" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2022 com.example.ml. All rights reserved." "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2022 com.vanomak.ml. All rights reserved." "\0"
             VALUE "OriginalFilename", "ml_team.exe" "\0"
             VALUE "ProductName", "ml_team" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"

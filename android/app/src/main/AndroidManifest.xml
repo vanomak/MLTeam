@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.ml.ml_team">
+    package="com.vanomak.ml.ml_team">
    <application
         android:label="ml_team"
         android:name="${applicationName}"
